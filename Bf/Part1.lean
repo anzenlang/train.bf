@@ -29,6 +29,8 @@ inductive Ast.Op
 | inc : Op
 /-- Sub `1` to the current memory cell. -/
 | dec : Op
+| addTo : Int → Op
+| moveBy : Int → Op
 deriving Inhabited, Repr, BEq
 
 #check Ast.Op
@@ -122,9 +124,10 @@ def ofChar? : Char → Option Op
 | '+' => inc | '-' => dec
 | _ => none
 
-def toChar : Op → Char
+def toChar : Op → Option Char
 | mvr => '>' | mvl => '<'
 | inc => '+' | dec => '-'
+| _ => none
 end sol!
 
 
@@ -135,11 +138,6 @@ theorem toChar_mvr : mvr.toChar = '>' := rfl
 theorem toChar_mvl : mvl.toChar = '<' := rfl
 theorem toChar_inc : inc.toChar = '+' := rfl
 theorem toChar_dec : dec.toChar = '-' := rfl
-
-theorem ofChar_toChar :
-  ∀ (o : Op), ofChar? (toChar o) = some o
-:= fun o => by
-  cases o <;> rfl
 
 theorem toChar_ofChar :
   ∀ (c : Char) (o : Op), ofChar? c = some o → toChar o = c
@@ -161,8 +159,11 @@ end proofs
 
 section sol!
 /-- Pretty string representation. -/
-instance instToString : ToString Op :=
-  ⟨toString ∘ toChar⟩
+instance instToString : ToString Op where
+  toString
+  | addTo i => s!"+\{{i}}"
+  | moveBy i => s!">\{{i}}"
+  | o => o.toChar.get!.toString
 
 /-- Useful for debug. -/
 instance instOptionToString : ToString (Option Op) where
