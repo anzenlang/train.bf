@@ -30,6 +30,7 @@ inductive Ast.Op
 /-- Sub `1` to the current memory cell. -/
 | dec : Op
 | addTo : Int → Op
+| setZero : Op
 | moveBy : Int → Op
 deriving Inhabited, Repr, BEq
 
@@ -122,11 +123,13 @@ section sol!
 def ofChar? : Char → Option Op
 | '>' => mvr | '<' => mvl
 | '+' => inc | '-' => dec
+| '0' => setZero
 | _ => none
 
 def toChar : Op → Option Char
 | mvr => '>' | mvl => '<'
 | inc => '+' | dec => '-'
+| setZero => '0'
 | _ => none
 end sol!
 
@@ -254,6 +257,9 @@ def mvr : Ast := Op.mvr
 def mvl : Ast := Op.mvl
 def inc : Ast := Op.inc
 def dec : Ast := Op.dec
+def setZero : Ast := Op.setZero
+def moveBy : Int → Ast := (Op.moveBy ·)
+def addTo : Int → Ast := (Op.addTo ·)
 
 def out : Ast := Seff.out
 def inp : Ast := Seff.inp
@@ -274,19 +280,19 @@ def seqN : Nat → Ast → Ast :=
 
 
 
-/-! Write `moveBy` which takes an `i : Int` and moves right (left) `i` cells if `0≤i` (`i<0`). -/
+/-! Write `moveBy'` which takes an `i : Int` and moves right (left) `i` cells if `0≤i` (`i<0`). -/
 
 #check Int
 
 section sol!
-def moveBy : Int → Ast
+def moveBy' : Int → Ast
 | .ofNat n => mvr.seqN n
 | .negSucc n => mvl.seqN n.succ
 end sol!
 
-example : moveBy 3 = seq #[mvr, mvr, mvr] := rfl
-example : moveBy 0 = seq #[] := rfl
-example : moveBy (- 2) = seq #[mvl, mvl] := rfl
+example : moveBy' 3 = seq #[mvr, mvr, mvr] := rfl
+example : moveBy' 0 = seq #[] := rfl
+example : moveBy' (- 2) = seq #[mvl, mvl] := rfl
 
 
 

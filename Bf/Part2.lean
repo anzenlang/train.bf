@@ -196,6 +196,11 @@ def applyOp : Ast.Op → Mem
 | .mvl => self.mvl
 | .inc => self.mapCurr Nat.succ
 | .dec => self.mapCurr Nat.pred
+| .setZero =>
+  { self with
+    mem := self.mem.set self.ptr 0
+    ptr := ⟨self.ptr.val, by simp⟩
+  }
 | .addTo (.ofNat n) =>
   let tgt := self.ptr + n
   if h : tgt < self.mem.size then
@@ -215,12 +220,11 @@ def applyOp : Ast.Op → Mem
     mem := self.mem.set ⟨tgt, by omega⟩ (val + val')
     ptr := ⟨self.ptr.val, by simp [Array.size_set]⟩
   }
-| .moveBy (.ofNat n) =>
-  let tgt := self.ptr + n
-  if h : tgt < self.mem.size then
-    { self with ptr := ⟨tgt, h⟩ }
-  else
-    self
+| .moveBy (.ofNat n) => Id.run do
+  let mut self := self
+  for _ in [0:n] do
+    self := self.mvr
+  self
 | .moveBy (.negSucc n) =>
   let tgt := self.ptr - n.succ
   { self with ptr := ⟨tgt, by omega⟩ }

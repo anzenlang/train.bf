@@ -750,7 +750,7 @@ export Ast (
   mvr mvl
   inc dec
   seq block blockSeq
-  seqN moveBy add sub
+  seqN moveBy addTo setZero add sub
   out inp
   dbg dump chk
 )
@@ -772,8 +772,11 @@ def addInt : Int → Ast
 | .negSucc n => sub n.succ
 
 /-- Moves the current cell to some other cell. -/
-def moveValueBy : Int → Ast :=
-  loop ∘ decInc
+def moveValueBy (i : Int) : Ast :=
+  let mv :=
+    if i ≥ 0 then mvr.seqN i.natAbs else moveBy i
+  seq #[ mv, setZero, moveBy (-i), addTo i, setZero ]
+
 
 /-- Outputs the current cells and the `i` cells on the right if `0 ≤ i`, on the left otherwise. -/
 def emitCells (i : Int) : Ast :=
@@ -788,7 +791,7 @@ def emitCells (i : Int) : Ast :=
 #[0, 0, 0, 7, 0, 0]
 -/
 #guard_msgs in #eval do
-  let test : Ast := .seq #[
+  let ast : Ast := .seq #[
     chk 0 "fresh cell should store `0`",
     dbg "reading input",
     inp,
@@ -803,7 +806,7 @@ def emitCells (i : Int) : Ast :=
     dbg "emitting the 5 cells on the right of the current cell",
     emitCells 5
   ]
-  test.eval! [7]
+  ast.eval! [7]
 
 
 
@@ -850,10 +853,15 @@ def fib : Ast := seq #[
     dec, -- decrement counter (mem[0])
     dbg "starting outter loop (counter decremented)", dump,
     mvr, moveValueBy 2, -- move previous value to mem[3]
-    mvr, loopSeq #[
-      -- add current fib-value (mem[2]) to old fib-value (mem[1] = `0`) and mem[3]
-      dec, mvl, inc, moveBy 2, inc, mvl
-    ], -- current fib-value (mem[2]) is now `0`
+    mvr,
+    addTo (-1),
+    addTo 1,
+    setZero,
+    -- loopSeq #[
+    --   -- add current fib-value (mem[2]) to old fib-value (mem[1] = `0`) and mem[3]
+    --   dec, mvl, inc, moveBy 2, inc, mvl
+    -- ],
+    -- current fib-value (mem[2]) is now `0`
     dbg "before moving current value", dump,
     mvr, moveValueBy (-1),
     moveBy (-3), -- back to counter (mem[0])
@@ -926,7 +934,8 @@ def fib : Ast := seq #[
 -- fib[6] = 13
 -- fib[7] = 21
 -- -/
--- #guard_msgs in #eval do
+-- #guard_msgs in
+-- #eval do
 --   let fib := seq #[
 --     out, fib, out, -- compute `fib 0` first
 --     -- loop :
