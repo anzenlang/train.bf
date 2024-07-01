@@ -8,7 +8,7 @@ import Bf.Part1
 
 We're going to have a potentially infinite loop detection mechanism. So let's discuss that first.
 
-As we execute `Ast` code, we will find `Ast.block`-s causing us to run their bodies (potientially)
+As we execute `Ast` code, we will find `Ast.block`-s causing us to run their bodies (potentially)
 multiple times. As we do this, for each block we (re-)execute we will maintain two important pieces
 of information.
 
