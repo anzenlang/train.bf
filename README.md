@@ -97,7 +97,7 @@ Documentation for these libraries available here:
 
 ## Resources
 
-- <https://leanprover-community.github.io/mathlib4_docs>
+- API documentation: <https://leanprover-community.github.io/mathlib4_docs>
 
 - [homepage][lean]
 

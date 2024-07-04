@@ -1,4 +1,5 @@
-import Bf
+import Bf.Part0
+import Bf.Part4
 
 def runLeanFib (ubound : Nat) : IO Unit :=
   for n in [0 : ubound + 1] do
@@ -8,6 +9,8 @@ def runLeanFib (ubound : Nat) : IO Unit :=
 
 open Zen.Train.Bf in
 def main (_args : List String) : IO Unit := do
+  -- runLeanFib (10^4)
+
   for n in [0:30] do
     let config : Rt.Config :=
         .allOff
