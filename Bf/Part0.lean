@@ -412,9 +412,9 @@ instance ToStr.instBool : ToStr Bool :=
 #eval ToStr.toString true -- finds `ToStr.instBool` on its own
 #eval ToStr.toString 7
 
-/--
-error: failed to synthesize instance
+/-- error: failed to synthesize
   ToStr (Option String)
+use `set_option diagnostics true` to get diagnostic information
 -/
 #guard_msgs in
   #eval ToStr.toString (some "cat")

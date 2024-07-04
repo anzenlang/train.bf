@@ -403,6 +403,7 @@ section sol!
 def throw : Error → BfT M α :=
   (.error · · |> pure)
 end sol!
+
 /-- info:
 Zen.Train.Bf.Rt.BfT.throw {M : Type → Type} [Monad M] {α : Type} : Error → BfT M α
 -/
@@ -412,6 +413,7 @@ section sol!
 def throwLoopLimit : (limit : Nat) → (count : Nat) → limit < count → BfT M α :=
   (.loopLimit · · · |> throw)
 end sol!
+
 /-- info:
 Zen.Train.Bf.Rt.BfT.throwLoopLimit {M : Type → Type} [Monad M] {α : Type} (limit count : Nat) : limit < count → BfT M α
 -/
@@ -421,6 +423,7 @@ section sol!
 def throwCheckFailed (msg : String) (exp val : Nat) (h_ne : exp ≠ val) : BfT M α :=
   throw <| .checkFailed msg exp val h_ne
 end sol!
+
 /-- info:
 Zen.Train.Bf.Rt.BfT.throwCheckFailed {M : Type → Type} [Monad M] {α : Type} (msg : String) (exp val : Nat)
   (h_ne : exp ≠ val) : BfT M α
@@ -431,6 +434,7 @@ section sol!
 def getState : BfT M State
 | state => return .ok state state
 end sol!
+
 /-- info:
 Zen.Train.Bf.Rt.BfT.getState {M : Type → Type} [Monad M] : BfT M State
 -/
@@ -440,10 +444,15 @@ section sol!
 def setState : State → BfT M Unit
 | state, _ => return .ok () state
 end sol!
+
 /-- info:
 Zen.Train.Bf.Rt.BfT.setState {M : Type → Type} [Monad M] : State → BfT M Unit
 -/
 #guard_msgs in #check setState
+
+
+-- This next one corresponds to a `MonadLift (StateT State M) (BfT M)`:
+-- it turns a `State → M (α × State)` (which is the same as `StateT State M α`) into a `BfT M α`.
 
 section sol!
 def mapMStateAnd : (State → M (α × State)) → BfT M α
@@ -451,6 +460,7 @@ def mapMStateAnd : (State → M (α × State)) → BfT M α
   let (res, state) ← f state
   return .ok res state
 end sol!
+
 /-- info:
 Zen.Train.Bf.Rt.BfT.mapMStateAnd {M : Type → Type} [Monad M] {α : Type} : (State → M (α × State)) → BfT M α
 -/
@@ -461,6 +471,7 @@ def mapMState (f : State → M State) : BfT M Unit :=
   mapMStateAnd fun state => do
     return ((), ← f state)
 end sol!
+
 /-- info:
 Zen.Train.Bf.Rt.BfT.mapMState {M : Type → Type} [Monad M] (f : State → M State) : BfT M Unit
 -/
@@ -471,6 +482,7 @@ def stateDoM (f : State → M α) : BfT M α :=
   mapMStateAnd fun state => do
     return (← f state, state)
 end sol!
+
 /-- info:
 Zen.Train.Bf.Rt.BfT.stateDoM {M : Type → Type} [Monad M] {α : Type} (f : State → M α) : BfT M α
 -/
@@ -480,6 +492,7 @@ section sol!
 def mapStateAnd (f : State → α × State) : BfT M α :=
   mapMStateAnd (return f ·)
 end sol!
+
 /-- info:
 Zen.Train.Bf.Rt.BfT.mapStateAnd {M : Type → Type} [Monad M] {α : Type} (f : State → α × State) : BfT M α
 -/
@@ -489,6 +502,7 @@ section sol!
 def mapState (f : State → State) : BfT M Unit :=
   mapMState (return f ·)
 end sol!
+
 /-- info:
 Zen.Train.Bf.Rt.BfT.mapState {M : Type → Type} [Monad M] (f : State → State) : BfT M Unit
 -/
@@ -498,6 +512,7 @@ section sol!
 def stateDo (f : State → α) : BfT M α :=
   stateDoM (return f ·)
 end sol!
+
 /-- info:
 Zen.Train.Bf.Rt.BfT.stateDo {M : Type → Type} [Monad M] {α : Type} (f : State → α) : BfT M α
 -/
@@ -551,6 +566,19 @@ instance instMonadLift : MonadLift M (BfT M) where
     return .ok val state
 end sol!
 
+/-! `ExceptT Error M α` is a state-agnostic `BfT M α`, we can lift that. -/
+
+instance instMonadLiftExceptT : MonadLift (ExceptT Error M) (BfT M) where
+  monadLift res? state := do
+    match ← res? with
+    | .ok a => return .ok a state
+    | .error e => return .error e state
+
+/-! `StateT M α` is a `BfT M α` that can't fail. -/
+
+instance instMonadLiftStateT : MonadLift (StateT State M) (BfT M) where
+  monadLift := mapMStateAnd
+
 
 
 /-! Lifting/defining useful state manipulation functions. -/
@@ -558,6 +586,12 @@ section liftStateFunctions
 
 def getCurr : BfT M Nat :=
   stateDo State.getCurr
+
+def mapCurr (f : Nat → Nat) : BfT M Unit :=
+  mapState (State.mapCurr f)
+
+def setCurr : Nat → BfT M Unit :=
+  mapCurr ∘ 𝕂
 
 def emit (n : Nat) : BfT M Unit :=
   mapState fun s => s.emit n
@@ -599,8 +633,12 @@ end liftStateFunctions
 /-! Define the following:
 
 - `handleCheck : Ast.Check → BfT M Unit`, self-explanatory;
-- `handleSeff : Ast.Seff → BfT M Unit`: ignores `Seff.dbg`-s;
-- `handleSeff ... : Ast.Seff → BfT M Unit`: handles `Seff.dbg`-s with `println!`.
+- `handleSeff : Ast.Seff → BfT M Unit`: ignores `Seff.dbg`/`Seff.dump`;
+- `handleSeffIO ... : Ast.Seff → BfT M Unit`: handles `Seff.dbg`/`Seff.dump` with `println!` if
+  debugging is active.
+
+Also, remember that `State` includes a `Config`uration with flags telling us whether debugging
+(checks) are active: `state.dbg` (`state.check`).
 -/
 
 section sol!
@@ -639,7 +677,7 @@ end BfT
 
 /-! `Spec` instances! -/
 
-@[specialize]
+@[specialize 1 2]
 protected instance NoIO [Monad M] : Spec (BfT M) where
   op := BfT.handleOp
   seff := BfT.handleSeff
@@ -648,7 +686,7 @@ protected instance NoIO [Monad M] : Spec (BfT M) where
   getLoopLimit := BfT.getLoopLimit
   throw := BfT.throw
 
-@[specialize]
+@[specialize 1 2 3]
 protected instance IO [Monad M] [MonadLiftT IO M] : Spec (BfT M) :=
   {Rt.NoIO with seff := BfT.handleSeffIO}
 

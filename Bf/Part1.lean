@@ -338,7 +338,8 @@ end sol!
 #check Append
 
 section sol!
-instance instAppend : Append Ast := ⟨chain⟩
+instance instAppend : Append Ast :=
+  Append.mk chain
 end sol!
 
 /-- info:

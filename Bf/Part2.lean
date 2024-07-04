@@ -251,7 +251,7 @@ def withLoopLimit (loopLimit : Nat) : State :=
 def withNoLoopLimit : State :=
   {self with loopLimit := none}
 
-/-! Here are a few functions to write so that you don't fall asleed. -/
+/-! Here are a few functions to write so that you don't fall asleep. -/
 section sol!
 private def liftMemFun (f : Mem → Mem) : State → State
 | self => {self with toMem := f self.toMem}

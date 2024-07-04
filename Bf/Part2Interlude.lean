@@ -206,15 +206,17 @@ end sol!
 section sol!
 instance ReadM.instMonad : Monad (ReadM σ) where
   pure a _state := a
-  bind a? f? state :=
-    let a := a? state
-    f? a state
+  bind a? f? :=
+    fun state =>
+      let a := a? state
+      f? a state
 
 instance WriteM.instMonad : Monad (WriteM σ) where
   pure := Prod.mk
-  bind a? f? state :=
-    let (a, state) := a? state
-    f? a state
+  bind a? f? :=
+    fun state =>
+      let (a, state) := a? state
+      f? a state
 end sol!
 
 
@@ -425,9 +427,9 @@ def printState'' [MonadLift IO M] [ToString σ] : SMonT σ M Unit := do
 
 /-! This is too easy, now we can write functions like these. Right? -/
 
-/-- error:
-failed to synthesize instance
+/-- error: failed to synthesize
   MonadLift IO IO
+use `set_option diagnostics true` to get diagnostic information
 -/
 #guard_msgs in
 def printState''IO [ToString σ] : SMonT σ IO Unit :=

@@ -46,8 +46,9 @@ Otherwise we could write functions that prove anything, including false.
 def badButOkay : Tru :=
   panic! "I'm just lazy"
 
-/-- error: failed to synthesize instance
+/-- error: failed to synthesize
   Inhabited Fls
+use `set_option diagnostics true` to get diagnostic information
 -/
 #guard_msgs in
 def illogicPanic : Fls :=
