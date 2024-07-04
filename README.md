@@ -113,19 +113,19 @@ Learning:
 
 - Functional Programming in Lean (FPiL)
 
-  <https://lean-lang.org/functional_programming_in_lean>
+  <https://lean-lang.org/functional_programming_in_lean/>
 
 - Theorem-Proving in Lean (TPiL)
 
-  <https://lean-lang.org/theorem_proving_in_lean4>
+  <https://lean-lang.org/theorem_proving_in_lean4/>
 
 - Meta-Programming in Lean (MPiL)
 
-  <https://leanprover-community.github.io/lean4-metaprogramming-book>
+  <https://leanprover-community.github.io/lean4-metaprogramming-book/>
 
 - Lean manual
 
-  <https://lean-lang.org/lean4/doc>
+  <https://lean-lang.org/lean4/doc/>
 
 - Mathematics in Lean
 
@@ -148,6 +148,6 @@ Learning:
 [comm]: https://leanprover-community.github.io
 [immutable beans]: https://arxiv.org/pdf/1908.05647
 [lean]: https://lean-lang.org
-[fpil]: https://lean-lang.org/functional_programming_in_lean
+[fpil]: https://lean-lang.org/functional_programming_in_lean/
 [docgen]: https://github.com/leanprover/doc-gen4/tree/main
 [lakedoc]: https://github.com/leanprover/lean4/tree/master/src/lake#lake
